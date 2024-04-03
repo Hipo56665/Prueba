@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Bosques - v2</title>
+  <meta charset="utf-8">
+  <meta name="viewport"
+    content="target-densitydpi=device-dpi, width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
+  <style>
+    @-ms-viewport {
+      width: device-width;
+    }
+  </style>
+  <link rel="stylesheet" href="vendor/reset.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <defs>
+    <!-- Deuteranopia (red-green) -->
+    <filter id="deuteranopia">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0.625, 0.375, 0,   0, 0
+                         0.7,   0.3,   0,   0, 0
+                         0,     0.3, 0.7,   0, 0
+                         0,     0,   0,     1, 0" />
+    </filter>
+
+    <!-- Protanopia (red-green, different type) -->
+    <filter id="protanopia">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0.567, 0.433, 0,     0, 0
+                         0.558, 0.442, 0,     0, 0
+                         0,     0.242, 0.758, 0, 0
+                         0,     0,     0,     1, 0" />
+    </filter>
+
+    <!-- Tritanopia (blue-yellow) -->
+    <filter id="tritanopia">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0.95, 0.05,  0,     0, 0
+                             0,    0.433, 0.567, 0, 0
+                             0,    0.475, 0.525, 0, 0
+                             0,    0,     0,     1, 0" />
+    </filter>
+    <filter id="achromatopsia">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0.3333, 0.3333, 0.3333, 0, 0
+                      0.3333, 0.3333, 0.3333, 0, 0
+                      0.3333, 0.3333, 0.3333, 0, 0
+                      0,      0,      0,      1, 0" />
+    </filter>
+  </defs>
+</svg>
+
+<body class="multiple-scenes view-control-buttons">
+
+  <div id="modal3D" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <div id="controlsText"></div>
+      <div id="modelo3d" style="width: 300px; height: 200px;"></div><!-- Contenedor para el modelo 3D -->
+    </div>
+  </div>
+
+
+
+  <div id="pano"></div>
+  <div id="toggleDeviceOrientation">
+    <img class="enable" src="img/enable.png">
+    <img class="disable" src="img/disable.png">
+  </div>
+
+
+  <div id="sceneList">
+    <ul class="scenes">
+
+      <a href="javascript:void(0)" class="scene" data-id="0-1">
+        <li class="text">1</li>
+      </a>
+
+      <a href="javascript:void(0)" class="scene" data-id="1-2">
+        <li class="text">2</li>
+      </a>
+
+      <a href="javascript:void(0)" class="scene" data-id="2-3">
+        <li class="text">3</li>
+      </a>
+
+      <a href="javascript:void(0)" class="scene" data-id="3-4">
+        <li class="text">4</li>
+      </a>
+
+      <a href="javascript:void(0)" class="scene" data-id="4-5">
+        <li class="text">5</li>
+      </a>
+
+      <a href="javascript:void(0)" class="scene" data-id="5-61">
+        <li class="text">6.1</li>
+      </a>
+
+      <a href="javascript:void(0)" class="scene" data-id="6-62">
+        <li class="text">6.2</li>
+      </a>
+
+      <a href="javascript:void(0)" class="scene" data-id="7-612">
+        <li class="text">6.12</li>
+      </a>
+
+      <a href="javascript:void(0)" class="scene" data-id="8-613">
+        <li class="text">6.13</li>
+      </a>
+
+    </ul>
+  </div>
+
+  <div id="titleBar">
+    <h1 class="sceneName"></h1>
+  </div>
+
+  <a href="javascript:void(0)" id="autorotateToggle">
+    <img class="icon off" src="img/play.png">
+    <img class="icon on" src="img/pause.png">
+  </a>
+
+  <a href="javascript:void(0)" id="fullscreenToggle">
+    <img class="icon off" src="img/fullscreen.png">
+    <img class="icon on" src="img/windowed.png">
+  </a>
+
+  <a href="javascript:void(0)" id="sceneListToggle">
+    <img class="icon off" src="img/expand.png">
+    <img class="icon on" src="img/collapse.png">
+  </a>
+
+  <a href="javascript:void(0)" id="viewUp" class="viewControlButton viewControlButton-1">
+    <img class="icon" src="img/up.png">
+  </a>
+  <a href="javascript:void(0)" id="viewDown" class="viewControlButton viewControlButton-2">
+    <img class="icon" src="img/down.png">
+  </a>
+  <a href="javascript:void(0)" id="viewLeft" class="viewControlButton viewControlButton-3">
+    <img class="icon" src="img/left.png">
+  </a>
+  <a href="javascript:void(0)" id="viewRight" class="viewControlButton viewControlButton-4">
+    <img class="icon" src="img/right.png">
+  </a>
+  <a href="javascript:void(0)" id="viewIn" class="viewControlButton viewControlButton-5">
+    <img class="icon" src="img/plus.png">
+  </a>
+  <a href="javascript:void(0)" id="viewOut" class="viewControlButton viewControlButton-6">
+    <img class="icon" src="img/minus.png">
+  </a>
+
+  <div class="info">
+    <h1>Website Accessibility for Color-Blind Users</h1>
+    <label for="colorFilterDropdown">Elige el filtro:</label>
+    <select id="colorFilterDropdown">
+      <option value="normal">Normal Vision</option>
+      <option value="deuteranopia">Deuteranopia</option>
+      <option value="protanopia">Protanopia</option>
+      <option value="tritanopia">Tritanopia</option>
+      <option value="achromatopsia">Achromatopsia</option>
+    </select>
+    <div>
+      <label for="brightness">Brillo:</label>
+      <input type="range" id="brightness" name="brightness" min="0" max="200" value="100">
+    </div>
+    <div>
+      <label for="contrast">Contraste:</label>
+      <input type="range" id="contrast" name="contrast" min="0" max="200" value="100">
+    </div>
+    <div>
+      <label for="saturation">Saturación:</label>
+      <input type="range" id="saturation" name="saturation" min="0" max="200" value="100">
+    </div>
+    <div>
+      <button id="Restablecer">Restablecer</button>
+    </div>
+  </div>
+
+  <script src="vendor/screenfull.min.js"></script>
+  <script src="vendor/bowser.min.js"></script>
+  <script src="vendor/marzipano.js"></script>
+  <script src="DeviceOrientationControlMethod.js"></script>
+
+  <script src="data.js"></script>
+  <script src="index.js"></script>
+
+
+</body>
+
+</html>
